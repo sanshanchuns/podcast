@@ -12,6 +12,7 @@
 - 按时间倒序排列输出
 - 智能缓存机制，避免重复请求
 - 支持强制更新缓存
+- 音频文件下载功能
 
 ## 安装依赖
 
@@ -80,6 +81,22 @@ python fetch_yuntin_audio.py --days 3 --force
 python fetch_yuntin_audio.py --help
 ```
 
+### 音频下载
+
+```bash
+# 下载那些年节目音频
+python download_audio.py 那些年
+
+# 下载财经阅读节目音频
+python download_audio.py 财经阅读
+
+# 下载低质量音频文件
+python download_audio.py 那些年 --quality low
+
+# 查看下载帮助
+python download_audio.py --help
+```
+
 ## 文件结构
 
 ### 输出文件
@@ -89,6 +106,10 @@ python fetch_yuntin_audio.py --help
 ### 缓存文件
 - `audio_input/YYYYMMDD.json`: 按日期缓存的原始API响应数据
 - 缓存文件按日期命名，如：`audio_input/20250808.json`
+
+### 音频文件
+- `raw_audio/节目名_日期_音质.m4a`: 下载的音频文件
+- 文件命名格式：`那些年_2025-08-07_high.m4a`
 
 ### 音频项目 (audio_items)
 每个音频项目包含：
@@ -113,6 +134,9 @@ python fetch_yuntin_audio.py --help
 - 自动计算节目时长
 - 缓存机制可以避免重复请求，提高效率
 - 使用 `--force` 参数可以强制更新缓存数据
+- 音频文件较大（约83MB），下载时请确保网络稳定
+- 下载的文件会跳过已存在的文件，避免重复下载
+- 下载脚本会自动根据节目类型选择对应的JSON文件
 
 ## 示例输出
 
