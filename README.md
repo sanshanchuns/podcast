@@ -13,6 +13,7 @@
 - 智能缓存机制，避免重复请求
 - 支持强制更新缓存
 - 音频文件下载功能
+- 音频内容分析和脑图生成
 
 ## 安装依赖
 
@@ -97,6 +98,19 @@ python download_audio.py 那些年 --quality low
 python download_audio.py --help
 ```
 
+### 音频分析
+
+```bash
+# 分析音频内容并生成脑图
+python audio_to_mindmap.py
+
+# 查看脑图可视化
+python visualize_mindmap.py
+
+# 自定义输出目录
+python audio_to_mindmap.py --output my_analysis
+```
+
 ## 文件结构
 
 ### 输出文件
@@ -110,6 +124,10 @@ python download_audio.py --help
 ### 音频文件
 - `raw_audio/节目名_日期_音质.m4a`: 下载的音频文件
 - 文件命名格式：`那些年_2025-08-07_high.m4a`
+
+### 分析结果
+- `mindmap_output/transcriptions.json`: 音频转录文本和分析结果
+- `mindmap_output/mindmap_data.json`: 脑图数据结构
 
 ### 音频项目 (audio_items)
 每个音频项目包含：
@@ -137,6 +155,8 @@ python download_audio.py --help
 - 音频文件较大（约83MB），下载时请确保网络稳定
 - 下载的文件会跳过已存在的文件，避免重复下载
 - 下载脚本会自动根据节目类型选择对应的JSON文件
+- 音频分析支持中文分词和关键词提取
+- 脑图可视化展示节目内容和主题分布
 
 ## 示例输出
 

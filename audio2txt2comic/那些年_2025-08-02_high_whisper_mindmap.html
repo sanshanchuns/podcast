@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>朱棣迁都北京 - 脑图可视化</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .header .meta {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .mindmap-container {
+            padding: 40px;
+            min-height: 600px;
+        }
+
+        .mindmap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .main-topic {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.4em;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.3);
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .branches {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            width: 100%;
+        }
+
+        .branch {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid #3498db;
+        }
+
+        .branch:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .branch-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .children {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .child {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 3px solid #3498db;
+        }
+
+        .child-title {
+            font-weight: bold;
+            color: #34495e;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .details {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .details li {
+            background: white;
+            margin: 8px 0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid #27ae60;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .key-points {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            padding: 30px;
+            margin-top: 40px;
+            border-radius: 15px;
+        }
+
+        .key-points h3 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .key-points-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .key-point {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .key-point strong {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+
+        .summary {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+            padding: 30px;
+            margin-top: 30px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .header .meta {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .mindmap-container {
+                padding: 20px;
+            }
+            
+            .branches {
+                grid-template-columns: 1fr;
+            }
+            
+            .key-points-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .animation {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .branch:nth-child(1) { animation-delay: 0.1s; }
+        .branch:nth-child(2) { animation-delay: 0.2s; }
+        .branch:nth-child(3) { animation-delay: 0.3s; }
+        .branch:nth-child(4) { animation-delay: 0.4s; }
+        .branch:nth-child(5) { animation-delay: 0.5s; }
+        .branch:nth-child(6) { animation-delay: 0.6s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>朱棣迁都北京</h1>
+            <div class="subtitle">明朝十六帝系列</div>
+            <div class="meta">
+                <span>日期: 2025-08-02</span>
+                <span>节目: 那些年</span>
+                <span>转录工具: OpenAI Whisper</span>
+            </div>
+        </div>
+
+        <div class="mindmap-container">
+            <div class="mindmap">
+                <div class="main-topic animation">
+                    从南京到北京：一场运样了20年的迁都
+                </div>
+
+                <div class="branches">
+                    <div class="branch animation">
+                        <div class="branch-title">背景介绍</div>
+                        <div class="children">
+                            <div class="child">
+                                <div class="child-title">北京历史地位</div>
+                                <ul class="details">
+                                    <li>早期北京不是一线城市</li>
+                                    <li>人口主要集中在黄河流域</li>
+                                    <li>属于燕国重镇，战略位置重要</li>
+                                </ul>
+                            </div>
+                            <div class="child">
+                                <div class="child-title">地理环境</div>
+                                <ul class="details">
+                                    <li>环渤海、北枕居庸</li>
+                                    <li>地处农耕文明和游牧文明交界处</li>
+                                    <li>向东北可控制关外，往南可统领中原</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="branch animation">
+                        <div class="branch-title">迁都原因</div>
+                        <div class="children">
+                            <div class="child">
+                                <div class="child-title">军事考虑</div>
+                                <ul class="details">
+                                    <li>天子守国门</li>
+                                    <li>解决边境威胁</li>
+                                    <li>控制边军，避免藩王威胁</li>
+                                </ul>
+                            </div>
+                            <div class="child">
+                                <div class="child-title">政治考虑</div>
+                                <ul class="details">
+                                    <li>南京地缘政治辐射范围有限（主要在南中国）</li>
+                                    <li>篡位心理负担，在南京缺乏安全感</li>
+                                    <li>避免藩王势力坐大</li>
+                                </ul>
+                            </div>
+                            <div class="child">
+                                <div class="child-title">个人因素</div>
+                                <ul class="details">
+                                    <li>熟悉北京，从小在北平长大</li>
+                                    <li>饮食习惯不适应（北方人吃不惯江南菜）</li>
+                                    <li>在南京感觉不安全</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="branch animation">
+                        <div class="branch-title">迁都过程</div>
+                        <div class="children">
+                            <div class="child">
+                                <div class="child-title">时间跨度</div>
+                                <ul class="details">
+                                    <li>永乐年间，前后20年</li>
+                                    <li>采用温水煮青蛙策略</li>
+                                </ul>
+                            </div>
+                            <div class="child">
+                                <div class="child-title">主要步骤</div>
+                                <ul class="details">
+                                    <li>永乐元年：提升北平地位，改北平府为顺天府</li>
+                                    <li>永乐四年：以南京皇宫为蓝本新建北平皇宫</li>
+                                    <li>永乐七年：北巡，修建长陵，增加卫所</li>
+                                    <li>永乐八年：开凿会通河，打通南北漕运</li>
+                                    <li>永乐十三年：会通河完工</li>
+                                    <li>永乐十四年：正式商议迁都北平</li>
+                                    <li>永乐十五年：紫禁城正式动工</li>
+                                    <li>永乐十八年：北平皇宫和城建完成</li>
+                                    <li>永乐十九年：正式迁都，改应天府为南京</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="branch animation">
+                        <div class="branch-title">反对声音</div>
+                        <div class="children">
+                            <div class="child">
+                                <div class="child-title">经济成本</div>
+                                <ul class="details">
+                                    <li>运粮消耗大，国库空虚</li>
+                                    <li>老百姓负担加重，挖树皮求生</li>
+                                    <li>贪官污吏趁机中饱私囊</li>
+                                </ul>
+                            </div>
+                            <div class="child">
+                                <div class="child-title">官员利益</div>
+                                <ul class="details">
+                                    <li>利益格局重新洗牌</li>
+                                    <li>一半官员可能失业或变成闲职</li>
+                                    <li>前途不确定性增加</li>
+                                </ul>
+                            </div>
+                            <div class="child">
+                                <div class="child-title">天命观念</div>
+                                <ul class="details">
+                                    <li>三大殿火灾被视为天谴</li>
+                                    <li>大臣借机发难，认为不该迁都</li>
+                                    <li>董仲舒的天人感应理论影响</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="branch animation">
+                        <div class="branch-title">北京城市建设</div>
+                        <div class="children">
+                            <div class="child">
+                                <div class="child-title">城市布局</div>
+                                <ul class="details">
+                                    <li>内城、外城、皇城、宫城四重结构</li>
+                                    <li>中轴线布局：万寿山-三大殿-天安门</li>
+                                    <li>天地日月四坛，体现天人合一</li>
+                                </ul>
+                            </div>
+                            <div class="child">
+                                <div class="child-title">规模宏大</div>
+                                <ul class="details">
+                                    <li>征调数十万能工巧匠</li>
+                                    <li>上百万人力参与建设</li>
+                                    <li>规模空前绝后</li>
+                                </ul>
+                            </div>
+                            <div class="child">
+                                <div class="child-title">文化内涵</div>
+                                <ul class="details">
+                                    <li>体现中国古典建筑精髓</li>
+                                    <li>天人合一理念</li>
+                                    <li>紫禁城成为标志性建筑</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="branch animation">
+                        <div class="branch-title">历史影响</div>
+                        <div class="children">
+                            <div class="child">
+                                <div class="child-title">对北京</div>
+                                <ul class="details">
+                                    <li>从边陲重镇成为政治中心</li>
+                                    <li>奠定首都基础，几百年未改变</li>
+                                    <li>清军入关后继续定都北京</li>
+                                </ul>
+                            </div>
+                            <div class="child">
+                                <div class="child-title">对明朝</div>
+                                <ul class="details">
+                                    <li>开创天子守国门先例</li>
+                                    <li>解决边境问题，巩固统治</li>
+                                    <li>但也带来争议和负担</li>
+                                </ul>
+                            </div>
+                            <div class="child">
+                                <div class="child-title">争议评价</div>
+                                <ul class="details">
+                                    <li>黄宗羲认为明朝灭亡源自于此</li>
+                                    <li>后世评价褒贬不一</li>
+                                    <li>历史功过难定论</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="key-points animation">
+                    <h3>关键要点</h3>
+                    <div class="key-points-grid">
+                        <div class="key-point">
+                            <strong>迁都策略</strong>
+                            温水煮青蛙，20年逐步推进
+                        </div>
+                        <div class="key-point">
+                            <strong>核心原因</strong>
+                            军事需要+政治安全+个人偏好
+                        </div>
+                        <div class="key-point">
+                            <strong>最大挑战</strong>
+                            利益格局重新洗牌，官员反对声音强烈
+                        </div>
+                        <div class="key-point">
+                            <strong>历史意义</strong>
+                            奠定北京作为首都的基础，影响至今
+                        </div>
+                        <div class="key-point">
+                            <strong>争议焦点</strong>
+                            成本巨大vs战略价值，历史评价分歧
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary animation">
+                    朱棣迁都北京是明朝历史上的重大事件，通过20年的温水煮青蛙策略，成功将首都从南京迁至北京，开创了天子守国门的先例，奠定了北京作为首都的基础，对后世产生了深远影响。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 添加滚动动画效果
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // 观察所有分支元素
+        document.querySelectorAll('.branch, .key-points, .summary').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.6s ease-out';
+            observer.observe(el);
+        });
+
+        // 添加点击展开/收起功能
+        document.querySelectorAll('.child').forEach(child => {
+            const details = child.querySelector('.details');
+            const title = child.querySelector('.child-title');
+            
+            title.style.cursor = 'pointer';
+            title.addEventListener('click', () => {
+                details.style.display = details.style.display === 'none' ? 'block' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>
