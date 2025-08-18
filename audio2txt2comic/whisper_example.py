@@ -6,18 +6,32 @@ Whisper音频转文字简单示例
 
 import whisper
 import json
+from typing import Dict
 
-def simple_transcribe(audio_file_path):
+_MODEL_CACHE: Dict[str, any] = {}
+
+def get_or_load_model(model_name: str):
+    """
+    进程内模型缓存：同一进程多次调用时复用已加载的模型。
+    """
+    model = _MODEL_CACHE.get(model_name)
+    if model is None:
+        model = whisper.load_model(model_name)
+        _MODEL_CACHE[model_name] = model
+    return model
+
+def simple_transcribe(audio_file_path, model_name: str = "base"):
     """
     简单的音频转文字示例
     
     Args:
         audio_file_path: 音频文件路径
+        model_name: Whisper模型名称（tiny/base/small/medium/large），默认 base
     """
     print("正在加载Whisper模型...")
     
-    # 加载模型 (可以选择不同大小: tiny, base, small, medium, large)
-    model = whisper.load_model("base")
+    # 加载模型 (可以选择不同大小: tiny, base, small, medium, large) - 使用缓存
+    model = get_or_load_model(model_name)
     
     print("开始转录...")
     

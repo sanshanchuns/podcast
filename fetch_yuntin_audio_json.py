@@ -39,7 +39,8 @@ class YuntinAudioAnalyzer:
             日期列表
         """
         date_list = []
-        for i in range(days):
+        # 从昨天开始，向前 N 天
+        for i in range(1, days + 1):
             date = datetime.now() - timedelta(days=i)
             date_str = date.strftime('%Y%m%d')
             date_list.append(date_str)
@@ -190,6 +191,10 @@ class YuntinAudioAnalyzer:
         # 转为普通dict，按日期倒序排列（最新的在前）
         grouped = dict(sorted(grouped.items(), reverse=True))
         try:
+            # 确保输出目录存在
+            output_dir = os.path.dirname(filename)
+            if output_dir:
+                os.makedirs(output_dir, exist_ok=True)
             with open(filename, 'w', encoding='utf-8') as f:
                 json.dump(grouped, f, ensure_ascii=False, indent=2)
             print(f"数据已保存到 {filename}")
@@ -204,7 +209,7 @@ class YuntinAudioAnalyzer:
         Args:
             dates: 要分析的日期列表，如果为None则使用默认日期
             output_file: 输出文件名
-            program_type: 节目类型 ("那些年" 或 "财经阅读")
+            program_type: 节目类型 ("那些年"、"财经阅读" 或 "全部")
             force_update: 是否强制更新缓存
         """
         if dates is None:
@@ -220,14 +225,24 @@ class YuntinAudioAnalyzer:
             
             if audio_data:
                 # 分析音频项目
-                filtered_items = self.analyze_audio_items(audio_data, program_type)
-                all_filtered_items.extend(filtered_items)
-                
-                print(f"日期 {date} 找到 {len(filtered_items)} 条符合条件的音频")
-                
-                # 显示找到的音频标题
-                for i, item in enumerate(filtered_items, 1):
-                    print(f"  {i}. {item['program_name']}")
+                if program_type == "全部":
+                    items_those_years = self.analyze_audio_items(audio_data, "那些年")
+                    items_finance = self.analyze_audio_items(audio_data, "财经阅读")
+                    filtered_items = items_those_years + items_finance
+                    all_filtered_items.extend(filtered_items)
+                    print(f"日期 {date} 找到 {len(items_those_years)} 条《那些年》，{len(items_finance)} 条《财经阅读》，合计 {len(filtered_items)} 条")
+                    # 显示找到的音频标题
+                    for i, item in enumerate(filtered_items, 1):
+                        print(f"  {i}. {item['program_name']}")
+                else:
+                    filtered_items = self.analyze_audio_items(audio_data, program_type)
+                    all_filtered_items.extend(filtered_items)
+                    
+                    print(f"日期 {date} 找到 {len(filtered_items)} 条符合条件的音频")
+                    
+                    # 显示找到的音频标题
+                    for i, item in enumerate(filtered_items, 1):
+                        print(f"  {i}. {item['program_name']}")
             
             # 添加延迟避免请求过于频繁
             time.sleep(1)
@@ -241,30 +256,34 @@ class YuntinAudioAnalyzer:
 def main():
     """主函数"""
     parser = argparse.ArgumentParser(description='云听音频分析工具')
-    parser.add_argument('--days', type=int, required=True, help='获取最近N天的数据 (必填)')
-    parser.add_argument('--output', type=str, required=True, help='输出文件名 (必填)')
-    parser.add_argument('--program', type=str, required=True, choices=['那些年', '财经阅读'], help='节目类型 (必填)')
+    parser.add_argument('--days', type=int, default=1, help='获取最近N天的数据，默认1=昨天')
+    parser.add_argument('--output', type=str, default=None, help='输出文件名，未指定则默认 audio_output/<日期>.json')
+    parser.add_argument('--program', type=str, default='全部', choices=['那些年', '财经阅读', '全部'], help='节目类型，默认 全部')
     parser.add_argument('--force', action='store_true', help='强制更新缓存，重新请求所有数据')
-
-    # 如果没有参数，输出help并退出
-    import sys
-    if len(sys.argv) == 1:
-        parser.print_help()
-        sys.exit(0)
 
     args = parser.parse_args()
 
     analyzer = YuntinAudioAnalyzer()
-
-    # 生成最近N天的日期列表
+    
+    # 生成日期列表：统一用 generate_date_list，从昨天开始往前数最近 N 天
     dates_to_analyze = analyzer.generate_date_list(args.days)
-
+    
     print(f"开始分析云听{args.program}音频，获取最近 {args.days} 天的数据...")
     print(f"分析日期: {', '.join(dates_to_analyze)}")
     if args.force:
         print("强制更新模式：将重新请求所有数据")
-
-    analyzer.run_analysis(dates_to_analyze, args.output, args.program, args.force)
+    
+    # 处理默认输出文件名
+    if args.output:
+        output_file = args.output
+    else:
+        if len(dates_to_analyze) == 1:
+            output_file = f"audio_output/{dates_to_analyze[0]}.json"
+        else:
+            # 多天时以起止日期命名：最早-最晚
+            output_file = f"audio_output/{dates_to_analyze[-1]}-{dates_to_analyze[0]}.json"
+    
+    analyzer.run_analysis(dates_to_analyze, output_file, args.program, args.force)
 
 if __name__ == "__main__":
     main() 
